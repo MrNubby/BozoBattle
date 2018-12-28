@@ -10,6 +10,7 @@ using namespace std;
 playerStats::playerStats()
 {
 	playerName = "";
+	maxHealth = 50;
 	playerHealth = 50;
 	playerDamage = 0;
 	maxHit = 10;
@@ -114,13 +115,13 @@ void playerStats::applyItems()
 		}
 		if (inventory[pos] == "Regen Bracelet") {
 
-			playerHealth += 15;
+			maxHealth += 15;
 
 			inventory[pos] = "";
 		}
 		if (inventory[pos] == "Tanglebug Meat") {
 
-			playerHealth += 10;
+			maxHealth += 10;
 
 			inventory[pos] = "";
 		}
@@ -130,6 +131,12 @@ void playerStats::applyItems()
 
 			inventory[pos] = "";
 		}
+		/*if (inventory[pos] == "Rune Defender") {
+
+			maxHit += 1;
+
+			inventory[pos] = "";
+		}*/
 	}
 
 }
@@ -143,22 +150,64 @@ int playerStats::playerAttack() {
 
 void playerStats::playerDefence(int damage)
 {
+	int sqShieldBlock;
+
 	for (int pos = 0; pos < inventory.size(); pos++) {
 
-		if (inventory[pos] == "Rune SQ Shield") {
+		if (inventory[pos] == "Rune SQ Shield") { //sq shield effects
 
+			int sqShieldBlock = rand() % 2;
+			
 			if (damage > 0) {
-				damage -= 1;
+
+				if (sqShieldBlock == 0) {
+					damage -= 2;
+				}
+				else {
+					damage -= 1;
+				}
+
 			}
 
-		}
-		else if (inventory[pos] == "Rune Defender") {
+		} //sq shield effects
+		else if (inventory[pos] == "Rune Defender") { //defender effects
 
+			damage -= 1;
 
-		}
+		} //defender effects
 	}
 
 	playerHealth -= damage;
+
+}
+
+bool playerStats::searchInventory(string item)
+{
+
+	for (int pos = 0; pos < inventory.size(); pos++) {
+		
+		if (inventory[pos] == item) {
+			return true;
+
+		}
+
+	}
+
+
+	return false;
+}
+
+void playerStats::removeItem(string item)
+{
+
+	for (int pos = 0; pos < inventory.size(); pos++) {
+
+		if (inventory[pos] == item) {
+			inventory[pos] = "";
+
+		}
+
+	}
 
 }
 
@@ -172,8 +221,10 @@ bossGrimcrackle::bossGrimcrackle()
 	bossHealth = 50;
 	bossDamage = 0;
 	drops[0] = "Rune SQ Shield";
-	drops[1] = "Phoenix Necklace";
-	drops[2] = "Dragon Scimitar";
+	//drops[1] = "Phoenix Necklace";
+	//drops[2] = "Dragon Scimitar";
+	drops[1] = "Rune SQ Shield";
+	drops[2] = "Rune SQ Shield";
 	maxHit = 10;
 	bossLives = 3;
 };
@@ -194,10 +245,45 @@ void bossGrimcrackle::randBossDamage()
 void bossGrimcrackle::rollDropTable(playerStats &player)
 {
 	int dropIndex;
+	int swapChoice;
 
 	dropIndex = rand() % dropTableSize;
 
+
 	cout << "You got the drop '" << drops[dropIndex] << "'!\n";
+
+	if (drops[dropIndex] == "Rune SQ Shield") {
+
+		if (player.searchInventory("Rune Defender")) {
+
+			cout << "\nWould you like to swap your Rune Defender for the Rune SQ Shield?\n";
+			cout << "\nThe SQ Shield reduces incoming damage by 1, with a 50% chance to reduce by 2 insead\n";
+			cout << "The Defender reduces incoming damage by 1 along with raising your max hit by 1.\n";
+			cout << "1. Keep the Rune Defender\n";
+			cout << "2. Lose the Rune Defender and take the Rune SQ Shield\n";
+			cin >> swapChoice;
+
+			if (swapChoice == 1) {
+				cout << "\nYou elected to not take the Rune SQ Shield\n";
+				return;
+			}
+			else if (swapChoice == 2) {
+				cout << "\nYou elected to drop your Rune Defender for the Rune SQ Shield\n";
+				
+				player.setMaxHit(player.getMaxHit() - 1);
+				player.removeItem("Rune Defender");
+				//drops[dropIndex] = "";
+
+				player.addItem(drops[dropIndex]);
+
+				player.applyItems();
+
+				return;
+			}
+
+		}
+
+	}
 
 	player.addItem(drops[dropIndex]);
 	
@@ -329,9 +415,11 @@ bossTanglebug::bossTanglebug()
 	setHealth(40);
 	setDamage(0);
 	setMaxHit(7);
-	drops[0] = "Amulet of Strength"; //add 1 to max hit
+	//drops[0] = "Amulet of Strength"; //add 1 to max hit
 	drops[1] = "Rune Defender"; //constant block 1 damage, add 1 to max hit
-	drops[2] = "Tanglebug Meat"; //adds 10 health one time
+	//drops[2] = "Tanglebug Meat"; //adds 10 health one time
+	drops[0] = "Rune Defender";
+	drops[2] = "Rune Defender";
 }
 
 void bossTanglebug::bossInfo()
@@ -341,4 +429,88 @@ void bossTanglebug::bossInfo()
 	cout << "Max Hit: " << getMaxHit() << "\n";
 	cout << getName() << "has a X% chance to attack twice\n";
 	cout << "Lives Left: " << getBossLives() << "\n";
+}
+
+int bossTanglebug::attack()
+{
+	randBossDamage();
+	return getDamage();
+}
+
+void bossTanglebug::defence(int damage)
+{
+	setHealth(getHealth() - damage);
+}
+
+void bossTanglebug::rollDropTable(playerStats & player)
+{
+	int dropIndex;
+	int swapChoice;
+	dropIndex = rand() % dropTableSize;
+
+	cout << "You got the drop '" << drops[dropIndex] << "'!\n";
+
+	if (drops[dropIndex] == "Rune Defender") {
+
+		player.setMaxHit(player.getMaxHit() + 1);
+
+		if (player.searchInventory("Rune SQ Shield")) {
+
+			cout << "\nWould you like to swap your Rune SQ Shield for the Rune Defender?\n";
+			cout << "\nThe SQ Shield reduces incoming damage by 1, with a 50% chance to reduce by 2 insead\n";
+			cout << "The Defender reduces incoming damage by 1 along with raising your max hit by 1.\n";
+			cout << "1. Keep the SQ Shield\n";
+			cout << "2. Lose the SQ Shield and take the Rune Defender\n";
+			cin >> swapChoice;
+
+			if (swapChoice == 1) {
+				cout << "\nYou elected to not take the Rune Defender\n";
+				player.setMaxHit(player.getMaxHit() - 1);
+				return;
+			}
+			else if (swapChoice == 2) {
+				cout << "\nYou elected to drop your SQ Shield for the Rune Defender\n";
+
+				player.removeItem("Rune SQ Shield");
+				//drops[dropIndex] = "";
+
+				player.addItem(drops[dropIndex]);
+
+				player.applyItems();
+
+				return;
+			}
+
+		}
+
+	}
+
+	player.addItem(drops[dropIndex]);
+
+	player.applyItems();
+}
+
+void bossTanglebug::showDropTable()
+{
+	cout << "\n" << getName() << "'s Drop Table:\n";
+	for (int pos = 0; pos < dropTableSize; pos++) {
+		cout << "\t-" << drops[pos] << "\n";
+	}
+}
+
+void bossTanglebug::bossBuff()
+{
+	if (getBossLives() == 2) {
+		setHealth(50);
+		setMaxHit(8);
+	}
+	else if (getBossLives() == 1) {
+		setHealth(55);
+		setMaxHit(10);
+	}
+}
+
+void bossTanglebug::randBossDamage()
+{
+	setDamage(rand() % (getMaxHit() + 1));
 }
