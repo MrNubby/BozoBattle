@@ -333,3 +333,12 @@ bossTanglebug::bossTanglebug()
 	drops[1] = "Rune Defender"; //constant block 1 damage, add 1 to max hit
 	drops[2] = "Tanglebug Meat"; //adds 10 health one time
 }
+
+void bossTanglebug::bossInfo()
+{
+	cout << "\n" << getName() << "'s Stats:\n";
+	cout << "Health: " << getHealth() << "\n";
+	cout << "Max Hit: " << getMaxHit() << "\n";
+	cout << getName() << "has a X% chance to attack twice\n";
+	cout << "Lives Left: " << getBossLives() << "\n";
+}
