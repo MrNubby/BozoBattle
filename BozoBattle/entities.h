@@ -19,6 +19,9 @@ public:
 	void setName(string newPlayerName) { playerName = newPlayerName; }
 	string getName() { return playerName; }
 
+	void setMaxHealth(int _maxHealth) { maxHealth = _maxHealth; }
+	int getMaxHealth() { return maxHealth; }
+
 	void setHealth(int newPlayerHealth) { playerHealth = newPlayerHealth; }
 	int getHealth() { return playerHealth; }
 
@@ -28,6 +31,7 @@ public:
 	void addItem(string item);
 	void showInventory();
 
+	void setMaxHit(int _maxHit) { maxHit = _maxHit; }
 	int getMaxHit() { return maxHit; }
 
 	void bossDefeatCounter() { bossesDefeated++; }
@@ -39,9 +43,13 @@ public:
 	int playerAttack();
 	void playerDefence(int damage);
 
+	bool searchInventory(string item);
+	void removeItem(string item);
+
 private:
 
 	string playerName;
+	int maxHealth;
 	int playerHealth;
 	int playerDamage;
 	int maxHit;
